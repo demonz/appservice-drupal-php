@@ -28,15 +28,16 @@ service ssh start
 
 # PREPARE DRUPAL
 
+# copy app service settings file
+cp /var/www/html/sites/default/settings.appservice.php /var/www/html/sites/default/settings.php
+
 # move sites/default/files directory to location on /home which is persisted by app service
 if [ ! -d "/home/wwwroot/sites/default/files" ]; then
   mkdir -p /home/wwwroot/sites/default/files
 fi
+chown -R www-data:www-data /home/wwwroot/sites/default/files
 rm -rf /var/www/html/sites/default/files
 ln -s /home/wwwroot/sites/default/files /var/www/html/sites/default/files
-
-# copy app service settings file
-cp /var/www/html/sites/default/settings.appservice.php /var/www/html/sites/default/settings.php
 
 
 
