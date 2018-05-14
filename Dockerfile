@@ -141,6 +141,7 @@ RUN { \
         echo "display_errors=Off"; \
         echo "display_startup_errors=Off"; \
         echo "date.timezone=UTC"; \
+        echo "expose_php=Off"; \
     } > /usr/local/etc/php/conf.d/php.ini
 
 
