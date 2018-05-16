@@ -90,7 +90,7 @@ RUN set -ex; \
     wget -qO- "${url}" | tar xz -C /usr/local/src/; \
     rm -rf /var/www/html; \
     mv /usr/local/src/drupal-${DRUPAL_VERSION}/ /var/www/html; \
-    cp /var/www/html/sites/default/default.settings.php /var/www/html/sites/default/settings.appservice.php; \
+    cp /var/www/html/sites/default/default.settings.php /var/www/html/sites/default/appservice.settings.php; \
     \
     # clean up
     rm -rf /usr/local/src/*;
