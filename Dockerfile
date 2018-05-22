@@ -24,8 +24,11 @@ RUN set -ex; \
         libgmp-dev \
         libmagickwand-dev \
         \
+        # mysql client only
+        mysql-client \
+        \
         # ssh server for azure
-        openssh-server vim curl wget tcptraceroute \
+        openssh-server vim wget rsync tcptraceroute \
         \
         # image optimistaion tools
         jpegoptim pngquant optipng; \
@@ -83,6 +86,55 @@ RUN set -ex; \
     rm -rf /usr/local/src/*;
 
 
+# install azcopy
+# see https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-linux#download-and-install-azcopy
+RUN set -ex; \
+  mkdir -p /usr/local/src/azcopy; \
+  cd /usr/local/src/azcopy; \
+  wget -O azcopy.tar.gz https://aka.ms/downloadazcopylinux64; \
+  tar -xf azcopy.tar.gz; \
+  ./install.sh; \
+  cd /var/www/html; \
+  rm -rf /usr/local/src/azcopy;
+
+
+# install composer, drush, etc
+# see https://github.com/wodby/drupal-php/blob/master/7/Dockerfile
+ENV DRUSH_LAUNCHER_VER="0.6.0" \
+    DRUPAL_CONSOLE_LAUNCHER_VER="1.8.0" \
+    DRUSH_LAUNCHER_FALLBACK="/root/.composer/vendor/bin/drush" \
+    \
+    PHP_REALPATH_CACHE_TTL="3600" \
+    PHP_OUTPUT_BUFFERING="16384"
+
+RUN set -ex; \
+    # Install composer
+    wget -qO- https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer; \
+    \
+    composer global require --no-plugins --no-scripts drush/drush:^8.0; \
+    \
+    # Drush launcher
+    drush_launcher_url="https://github.com/drush-ops/drush-launcher/releases/download/${DRUSH_LAUNCHER_VER}/drush.phar"; \
+    wget -O drush.phar "${drush_launcher_url}"; \
+    chmod +x drush.phar; \
+    mv drush.phar /usr/local/bin/drush; \
+    \
+    # Drush extensions
+    mkdir -p /root/.drush; \
+    drush_rr_url="https://ftp.drupal.org/files/projects/registry_rebuild-7.x-2.5.tar.gz"; \
+    wget -qO- "${drush_rr_url}" | tar zx -C /root/.drush; \
+    \
+    # Drupal console
+    console_url="https://github.com/hechoendrupal/drupal-console-launcher/releases/download/${DRUPAL_CONSOLE_LAUNCHER_VER}/drupal.phar"; \
+    curl "${console_url}" -L -o drupal.phar; \
+    mv drupal.phar /usr/local/bin/drupal; \
+    chmod +x /usr/local/bin/drupal; \
+    \
+    # Clean up
+    composer clear-cache; \
+    drush cc drush
+
+
 # download a barebones drupal install
 RUN set -ex; \
     # download
@@ -96,16 +148,11 @@ RUN set -ex; \
     rm -rf /usr/local/src/*;
 
 
-# ultimately install composer, drush, etc
-#
-
-
-
 COPY apache2.conf /bin/
 COPY init_container.sh /bin/
 COPY sshd_config /etc/ssh/
 
-RUN a2enmod rewrite expires include deflate
+RUN a2enmod rewrite expires include deflate headers
 
 
 RUN set -ex; \
@@ -120,14 +167,14 @@ RUN set -ex; \
    cp /bin/apache2.conf /etc/apache2/apache2.conf;
 
 
-RUN { \
-        echo "opcache.memory_consumption=128"; \
-        echo "opcache.interned_strings_buffer=8"; \
-        echo "opcache.max_accelerated_files=4000"; \
-        echo "opcache.revalidate_freq=60"; \
-        echo "opcache.fast_shutdown=1"; \
-        echo "opcache.enable_cli=1"; \
-    } > /usr/local/etc/php/conf.d/opcache-recommended.ini
+#RUN { \
+#        echo "opcache.memory_consumption=128"; \
+#        echo "opcache.interned_strings_buffer=8"; \
+#        echo "opcache.max_accelerated_files=4000"; \
+#        echo "opcache.revalidate_freq=60"; \
+#        echo "opcache.fast_shutdown=1"; \
+#        echo "opcache.enable_cli=1"; \
+#    } > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
 RUN { \
         # php resource limits
