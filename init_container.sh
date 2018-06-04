@@ -9,7 +9,7 @@ ________ __________ ____ _____________  _____  .____
         \/       \/                          \/        \/
                        .__
                 ______ |  |__ ______
-                \____ \|  |  \\____ \\
+                \____ \|  |  \\____  \\
                 |  |_> >   Y  \  |_> >
                 |   __/|___|  /   __/
                 |__|        \/|__|
@@ -35,22 +35,28 @@ service ssh start
 
 # PREPARE DRUPAL
 
-# copy app service settings file
-cp /var/www/html/sites/default/appservice.settings.php /var/www/html/sites/default/settings.php
+# copy appservice settings file
+if [ ! -f "/var/www/html/sites/default/settings.php" ]; then
+    cp /var/www/html/sites/default/appservice.settings.php /var/www/html/sites/default/settings.php
+fi
 
 # move sites/default/files directory to location on /home which is persisted by app service
-if [ ! -d "/home/wwwroot/sites/default/files" ]; then
-  mkdir -p /home/wwwroot/sites/default/files
+DRUPAL_SITES_DEFAULT_FILES=/var/www/html/sites/default/files
+HOME_SITES_DEFAULT_FILES=/home/wwwroot/sites/default/files
+
+if [ ! -d "$HOME_SITES_DEFAULT_FILES" ]; then
+  mkdir -p $HOME_SITES_DEFAULT_FILES
 fi
-chown -R www-data:www-data /home/wwwroot/sites/default/files
-rm -rf /var/www/html/sites/default/files
-ln -s /home/wwwroot/sites/default/files /var/www/html/sites/default/files
+chown -R www-data:www-data $HOME_SITES_DEFAULT_FILES
+rm -rf $DRUPAL_SITES_DEFAULT_FILES
+ln -s $HOME_SITES_DEFAULT_FILES $DRUPAL_SITES_DEFAULT_FILES
 
 
 
 # PREPARE AND START APACHE
 
 sed -i "s/{WEBSITES_PORT}/${WEBSITES_PORT}/g" /etc/apache2/apache2.conf
+sed -i "s/{WEBSITES_REQUIRE_IP}/${WEBSITES_REQUIRE_IP}/g" /etc/apache2/apache2.conf
 
 mkdir -p /var/lock/apache2
 mkdir -p /var/run/apache2
@@ -58,6 +64,7 @@ mkdir -p /var/run/apache2
 mkdir -p /home/LogFiles
 ln -s /home/LogFiles /var/log/apache2
 
+cd /var/www/html
 
 # execute CMD
 exec "$@"
