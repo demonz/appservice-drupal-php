@@ -8,6 +8,7 @@ MAINTAINER Demonz Media <hello@demonzmedia.com>
 
 ARG PHP_VERSION
 ARG DRUPAL_VERSION
+ARG PHP_OPCACHE_ENABLE
 
 
 # install the PHP extensions we need
@@ -27,8 +28,8 @@ RUN set -ex; \
         # mysql client only
         mysql-client \
         \
-        # ssh server for azure
-        openssh-server vim wget rsync tcptraceroute \
+        # ssh server for azure &
+        openssh-server vim wget rsync tcptraceroute libunwind8 \
         \
         # image optimistaion tools
         jpegoptim pngquant optipng; \
@@ -143,10 +144,17 @@ RUN set -ex; \
     wget -qO- "${url}" | tar xz -C /usr/local/src/; \
     rm -rf /var/www/html; \
     mv /usr/local/src/drupal-${DRUPAL_VERSION}/ /var/www/html; \
-    cp /var/www/html/sites/default/default.settings.php /var/www/html/sites/default/appservice.settings.php; \
+    cp /var/www/html/sites/default/default.settings.php /var/www/html/sites/default/settings.php; \
     \
     # clean up
     rm -rf /usr/local/src/*;
+
+
+RUN set -ex; \
+    # Download the certificate needed to communicate over SSL with Azure Database for MySQL server
+    mkdir -p /etc/pki/tls/certs/; \
+    url="https://www.digicert.com/CACerts/BaltimoreCyberTrustRoot.crt.pem"; \
+    wget -qO- "${url}" > /etc/pki/tls/certs/BaltimoreCyberTrustRoot.crt.pem;
 
 
 COPY apache2.conf /bin/
@@ -168,14 +176,17 @@ RUN set -ex; \
    cp /bin/apache2.conf /etc/apache2/apache2.conf;
 
 
-#RUN { \
-#        echo "opcache.memory_consumption=128"; \
-#        echo "opcache.interned_strings_buffer=8"; \
-#        echo "opcache.max_accelerated_files=4000"; \
-#        echo "opcache.revalidate_freq=60"; \
-#        echo "opcache.fast_shutdown=1"; \
-#        echo "opcache.enable_cli=1"; \
-#    } > /usr/local/etc/php/conf.d/opcache-recommended.ini
+
+RUN { \
+        echo "opcache.memory_consumption=128"; \
+        echo "opcache.interned_strings_buffer=8"; \
+        echo "opcache.max_accelerated_files=4000"; \
+        echo "opcache.revalidate_freq=1800"; \
+        echo "opcache.fast_shutdown=1"; \
+        echo "opcache.enable_cli=${PHP_OPCACHE_ENABLE}"; \
+        echo "opcache.enable=${PHP_OPCACHE_ENABLE}"; \
+    } > /usr/local/etc/php/conf.d/opcache-recommended.ini
+
 
 RUN { \
         # php resource limits
@@ -198,6 +209,7 @@ EXPOSE 2222 8080
 
 ENV PHP_VERSION="${PHP_VERSION}" \
     DRUPAL_VERSION="${DRUPAL_VERSION}" \
+    PHP_OPCACHE_ENABLE="${PHP_OPCACHE_ENABLE}" \
     APACHE_RUN_USER="www-data" \
     WEBSITES_PORT="8080" \
     WEBSITE_ROLE_INSTANCE_ID="localRoleInstance" \
