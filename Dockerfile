@@ -134,6 +134,7 @@ RUN set -ex; \
     composer clear-cache; \
     drush cc drush
 
+COPY drush/drush-patchfile /root/.drush/.
 
 # download a barebones drupal install
 RUN set -ex; \
