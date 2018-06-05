@@ -25,17 +25,15 @@ RUN set -ex; \
         libgmp-dev \
         libmagickwand-dev \
         \
-        # mysql client only
+        # mysql client only for drush
         mysql-client \
         \
-        # ssh server for azure &
+        # ssh server for azure & azcopy
         openssh-server vim wget rsync tcptraceroute libunwind8 \
         \
         # image optimistaion tools
         jpegoptim pngquant optipng; \
     \
-    # change root password to allow login via azure portal
-    echo "root:Docker!" | chpasswd; \
     ln -s /usr/bin/jpegoptim /usr/local/bin/jpegoptim; \
     ln -s /usr/bin/pngquant /usr/local/bin/pngquant; \
     ln -s /usr/bin/optipng /usr/local/bin/optipng; \
@@ -65,7 +63,10 @@ RUN set -ex; \
     \
     # add redis support !!!
     pecl install redis; \
-    echo "extension=redis.so;" > /usr/local/etc/php/conf.d/docker-php-ext-redis.ini;
+    echo "extension=redis.so;" > /usr/local/etc/php/conf.d/docker-php-ext-redis.ini; \
+    \
+    # change root password to allow login via azure portal
+    echo "root:Docker!" | chpasswd;
 
 
 # download and install php uploadprogress

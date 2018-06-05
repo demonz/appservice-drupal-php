@@ -25,7 +25,7 @@ cat /etc/motd
 
 
 # Get environment variables to show up in SSH session
-eval $(printenv | awk -F= '{print "export " $1"="$2 }' >> /etc/profile)
+#eval $(printenv | awk -F= '{print "export " $1"="$2 }' >> /etc/profile)
 
 
 # run sshd in background
@@ -56,6 +56,8 @@ ln -s $HOME_SITES_DEFAULT_FILES $DRUPAL_SITES_DEFAULT_FILES
 # PREPARE AND START APACHE
 
 sed -i "s/{WEBSITES_PORT}/${WEBSITES_PORT}/g" /etc/apache2/apache2.conf
+sed -i "s/{APACHE_REQUIREIP}/${APACHE_REQUIREIP//,/ }/g" /etc/apache2/apache2.conf
+
 
 mkdir -p /var/lock/apache2
 mkdir -p /var/run/apache2
@@ -63,7 +65,7 @@ mkdir -p /var/run/apache2
 mkdir -p /home/LogFiles
 ln -s /home/LogFiles /var/log/apache2
 
-cd /var/www/html
+echo "cd /var/www/html" >> ~/.bashrc
 
 # execute CMD
 exec "$@"
