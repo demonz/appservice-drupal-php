@@ -7,8 +7,6 @@ FROM php:${PHP_VERSION}-apache
 MAINTAINER Demonz Media <hello@demonzmedia.com>
 
 ARG PHP_VERSION
-ARG DRUPAL_VERSION
-ARG PHP_OPCACHE_ENABLE
 
 
 # install the PHP extensions we need
@@ -40,7 +38,6 @@ RUN set -ex; \
     ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/libldap.so; \
     ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/liblber.so; \
     ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h; \
-    rm -rf /var/lib/apt/lists/*; \
     pecl install imagick-beta; \
     pecl install mcrypt-1.0.1; \
     docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
@@ -61,12 +58,23 @@ RUN set -ex; \
     docker-php-ext-enable imagick; \
     docker-php-ext-enable mcrypt; \
     \
-    # add redis support !!!
-    pecl install redis; \
-    echo "extension=redis.so;" > /usr/local/etc/php/conf.d/docker-php-ext-redis.ini; \
-    \
     # change root password to allow login via azure portal
-    echo "root:Docker!" | chpasswd;
+    echo "root:Docker!" | chpasswd; \
+    \
+    # clean up
+    rm -rf /var/lib/apt/lists/*;
+
+
+# install azcopy
+# see https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-linux#download-and-install-azcopy
+RUN set -ex; \
+  mkdir -p /usr/local/src/azcopy; \
+  cd /usr/local/src/azcopy; \
+  wget -O azcopy.tar.gz https://aka.ms/downloadazcopylinux64; \
+  tar -xf azcopy.tar.gz; \
+  ./install.sh; \
+  cd /var/www/html; \
+  rm -rf /usr/local/src/azcopy;
 
 
 # download and install php uploadprogress
@@ -88,24 +96,11 @@ RUN set -ex; \
     rm -rf /usr/local/src/*;
 
 
-# install azcopy
-# see https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-linux#download-and-install-azcopy
-RUN set -ex; \
-  mkdir -p /usr/local/src/azcopy; \
-  cd /usr/local/src/azcopy; \
-  wget -O azcopy.tar.gz https://aka.ms/downloadazcopylinux64; \
-  tar -xf azcopy.tar.gz; \
-  ./install.sh; \
-  cd /var/www/html; \
-  rm -rf /usr/local/src/azcopy;
-
-
 # install composer, drush, etc
 # see https://github.com/wodby/drupal-php/blob/master/7/Dockerfile
 ENV DRUSH_LAUNCHER_VER="0.6.0" \
     DRUPAL_CONSOLE_LAUNCHER_VER="1.8.0" \
     DRUSH_LAUNCHER_FALLBACK="/root/.composer/vendor/bin/drush" \
-    \
     PHP_REALPATH_CACHE_TTL="3600" \
     PHP_OUTPUT_BUFFERING="16384"
 
@@ -134,11 +129,12 @@ RUN set -ex; \
     \
     # Clean up
     composer clear-cache; \
-    drush cc drush
+    drush cc drush;
 
 COPY drush/drush-patchfile /root/.drush/.
 
 # download a barebones drupal install
+ARG DRUPAL_VERSION
 RUN set -ex; \
     # download
     url="https://ftp.drupal.org/files/projects/drupal-${DRUPAL_VERSION}.tar.gz";  \
@@ -177,7 +173,7 @@ RUN set -ex; \
    cp /bin/apache2.conf /etc/apache2/apache2.conf;
 
 
-
+ARG PHP_OPCACHE_ENABLE
 RUN { \
         echo "opcache.memory_consumption=128"; \
         echo "opcache.interned_strings_buffer=8"; \

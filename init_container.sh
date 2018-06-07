@@ -25,7 +25,10 @@ cat /etc/motd
 
 
 # Get environment variables to show up in SSH session
-PHPIZE_DEPS=""
+unset PHPIZE_DEPS
+unset PHP_CFLAGS
+unset PHP_CPPFLAGS
+unset PHP_LDFLAGS
 eval $(printenv | awk -F= '{print "export " $1"="$2 }' >> /etc/profile)
 
 
