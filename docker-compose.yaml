@@ -3,7 +3,7 @@ version: "3"
 services:
 
   php:
-    image: nbcwebcontainers.azurecr.io/appservice-drupal-php:7.x-7.2
+    image: demonz/appservice-drupal-php:7.x-7.2
     environment:
       SOLR_HEAP: 1024m
       WEBSITES_PORT: 8080
