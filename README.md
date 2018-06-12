@@ -1,4 +1,7 @@
-# appservice-drupal-php
+# Apache/PHP for Drupal Docker Container Image
+
+* Base image: Docker official php:7.2.6-apache
+* [Docker Hub](https://hub.docker.com/_/php)
 
 
 ## Build a this container locally for development and testing

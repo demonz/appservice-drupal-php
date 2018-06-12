@@ -65,8 +65,6 @@ ln -s $HOME_SITES_DEFAULT_FILES $DRUPAL_SITES_DEFAULT_FILES
 sed -i "s/{WEBSITES_PORT}/${WEBSITES_PORT}/g" /etc/apache2/apache2.conf
 sed -i "s/{APACHE_REQUIREIP}/${APACHE_REQUIREIP//,/ }/g" /etc/apache2/apache2.conf
 
-htpasswd -b -c /etc/apache2/.htpasswd ${DRUPAL_USER} ${DRUPAL_PASSWORD}
-
 mkdir -p /var/lock/apache2
 mkdir -p /var/run/apache2
 
