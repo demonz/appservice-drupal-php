@@ -54,7 +54,8 @@ HOME_SITES_DEFAULT_FILES=/home/wwwroot/sites/default/files
 if [ ! -d "$HOME_SITES_DEFAULT_FILES" ]; then
   mkdir -p $HOME_SITES_DEFAULT_FILES
 fi
-chown -R www-data:www-data $HOME_SITES_DEFAULT_FILES
+# disabled, takes too long
+#chown -R www-data:www-data $HOME_SITES_DEFAULT_FILES
 rm -rf $DRUPAL_SITES_DEFAULT_FILES
 ln -s $HOME_SITES_DEFAULT_FILES $DRUPAL_SITES_DEFAULT_FILES
 
