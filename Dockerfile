@@ -40,6 +40,7 @@ RUN set -ex; \
     ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h; \
     pecl install imagick-beta; \
     pecl install mcrypt-1.0.1; \
+    pecl install xdebug; \
     docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
     docker-php-ext-install gd \
         mysqli \
@@ -57,6 +58,7 @@ RUN set -ex; \
         pcntl; \
     docker-php-ext-enable imagick; \
     docker-php-ext-enable mcrypt; \
+    docker-php-ext-enable xdebug; \
     \
     # change root password to allow login via azure portal
     echo "root:Docker!" | chpasswd; \
