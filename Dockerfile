@@ -13,6 +13,13 @@ ARG PHP_VERSION
 RUN set -ex; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
+        libpng-dev \
+        libjpeg-dev \
+        libpq-dev \
+        libmcrypt-dev \
+        libldap2-dev \
+        libldb-dev \
+        libicu-dev \
         libgmp-dev \
         libmagickwand-dev \
         \
@@ -31,8 +38,20 @@ RUN set -ex; \
     ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/libldap.so; \
     ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/liblber.so; \
     ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h; \
+    pecl install imagick-beta; \
+    pecl install mcrypt-1.0.1; \
+    pecl install xdebug; \
     docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr; \
     docker-php-ext-install gd \
+        mysqli \
+        opcache \
+        pdo \
+        pdo_mysql \
+        pdo_pgsql \
+        pgsql \
+        ldap \
+        intl \
+        gmp \
         zip \
         bcmath \
         mbstring \
